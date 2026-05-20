@@ -28,7 +28,12 @@ export default async function CoursePlayerPage({
     include: {
       modules: {
         orderBy: { order: "asc" },
-        include: { lessons: { orderBy: { order: "asc" } } },
+        include: {
+          lessons: {
+            orderBy: { order: "asc" },
+            include: { resources: { orderBy: { createdAt: "asc" } } },
+          },
+        },
       },
     },
   });
@@ -46,7 +51,6 @@ export default async function CoursePlayerPage({
   const allLessons = course.modules.flatMap((m) => m.lessons);
   const isAccessible = (free: boolean) => levelUnlocked || free;
 
-  // Curso sin lecciones, o nivel bloqueado sin lecciones gratuitas.
   if (allLessons.length === 0) {
     return (
       <StateView title={course.title} message="Este curso aún no tiene lecciones." />
@@ -107,6 +111,12 @@ export default async function CoursePlayerPage({
     })),
   }));
 
+  // Recursos descargables de la lección actual.
+  const resources = current.resources.map((resource) => ({
+    id: resource.id,
+    name: resource.name,
+  }));
+
   return (
     <CoursePlayer
       courseId={course.id}
@@ -118,6 +128,7 @@ export default async function CoursePlayerPage({
       signedUrl={signedUrl}
       resumeAt={resumeAt}
       completedLessonIds={completedLessonIds}
+      resources={resources}
     />
   );
 }

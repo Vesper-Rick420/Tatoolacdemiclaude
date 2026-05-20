@@ -2,7 +2,14 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, CheckCircle2, Circle, Lock, PlayCircle } from "lucide-react";
+import {
+  ArrowLeft,
+  CheckCircle2,
+  Circle,
+  FileDown,
+  Lock,
+  PlayCircle,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { VideoPlayer } from "@/components/student/video-player";
 
@@ -20,6 +27,8 @@ type PlayerModule = {
   lessons: PlayerLesson[];
 };
 
+type PlayerResource = { id: string; name: string };
+
 export function CoursePlayer({
   courseId,
   courseTitle,
@@ -30,6 +39,7 @@ export function CoursePlayer({
   signedUrl,
   resumeAt,
   completedLessonIds,
+  resources,
 }: {
   courseId: string;
   courseTitle: string;
@@ -40,6 +50,7 @@ export function CoursePlayer({
   signedUrl: string | null;
   resumeAt: number;
   completedLessonIds: string[];
+  resources: PlayerResource[];
 }) {
   // Set local de lecciones completadas (se actualiza al terminar un video,
   // sin recargar la página).
@@ -78,6 +89,7 @@ export function CoursePlayer({
               Este video aún no está disponible.
             </div>
           )}
+
           <div>
             <h2 className="text-lg font-semibold">{currentTitle}</h2>
             {currentDescription && (
@@ -86,6 +98,32 @@ export function CoursePlayer({
               </p>
             )}
           </div>
+
+          {/* Recursos descargables de la lección */}
+          {resources.length > 0 && (
+            <div className="space-y-2">
+              <h3 className="text-sm font-semibold">Recursos descargables</h3>
+              {resources.map((resource) => (
+                <a
+                  key={resource.id}
+                  href={`/api/download/${resource.id}`}
+                  download
+                  className="flex items-center gap-2.5 rounded-lg border border-border bg-card px-3 py-2.5 text-sm transition-colors hover:border-primary/50"
+                >
+                  <FileDown className="h-4 w-4 shrink-0 text-primary" />
+                  <span className="min-w-0 flex-1 truncate">
+                    {resource.name}
+                  </span>
+                  <span className="shrink-0 text-xs text-muted-foreground">
+                    Descargar
+                  </span>
+                </a>
+              ))}
+              <p className="text-xs text-muted-foreground">
+                Las descargas llevan una marca de agua con tu nombre.
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Contenido del curso */}
