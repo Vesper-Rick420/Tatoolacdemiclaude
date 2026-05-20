@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { toast } from "sonner";
 import {
   ArrowLeft,
   CheckCircle2,
@@ -58,6 +59,22 @@ export function CoursePlayer({
     () => new Set(completedLessonIds),
   );
 
+  const totalLessons = modules.reduce((sum, m) => sum + m.lessons.length, 0);
+
+  /** Se llama cuando el video de la lección actual termina. */
+  function handleLessonCompleted() {
+    if (completed.has(currentLessonId)) return;
+    const newCount = completed.size + 1;
+    setCompleted((prev) => new Set(prev).add(currentLessonId));
+
+    toast.success("¡Lección completada! 🎉");
+    if (newCount >= totalLessons) {
+      toast.success("🏆 ¡Felicidades! Has completado el curso.", {
+        duration: 6000,
+      });
+    }
+  }
+
   return (
     <div className="space-y-6 p-6 lg:p-10">
       <div>
@@ -80,9 +97,7 @@ export function CoursePlayer({
               src={signedUrl}
               lessonId={currentLessonId}
               resumeAt={resumeAt}
-              onCompleted={() =>
-                setCompleted((prev) => new Set(prev).add(currentLessonId))
-              }
+              onCompleted={handleLessonCompleted}
             />
           ) : (
             <div className="flex aspect-video w-full items-center justify-center rounded-xl border border-dashed border-border bg-card text-center text-sm text-muted-foreground">
@@ -108,6 +123,11 @@ export function CoursePlayer({
                   key={resource.id}
                   href={`/api/download/${resource.id}`}
                   download
+                  onClick={() =>
+                    toast.success(
+                      "Descarga iniciada. El archivo incluye tu marca de agua.",
+                    )
+                  }
                   className="flex items-center gap-2.5 rounded-lg border border-border bg-card px-3 py-2.5 text-sm transition-colors hover:border-primary/50"
                 >
                   <FileDown className="h-4 w-4 shrink-0 text-primary" />
