@@ -2,11 +2,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { GraduationCap, type LucideIcon } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { LogoutButton } from "@/components/auth/logout-button";
-import { APP_NAME } from "@/lib/constants";
+import { Logo } from "@/components/shared/logo";
 
 export type NavItem = { label: string; href: string; icon: LucideIcon };
 
@@ -28,21 +28,14 @@ export function AppSidebar({
 
   return (
     <div className="flex h-full flex-col gap-2 bg-sidebar p-4">
-      {/* Marca */}
-      <Link
-        href={homeHref}
-        onClick={onNavigate}
-        className="mb-4 flex items-center gap-2.5 px-2"
-      >
-        <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/15">
-          <GraduationCap className="h-5 w-5 text-primary" />
-        </span>
-        <span className="text-sm font-semibold leading-tight">
-          {APP_NAME}
-          <span className="block text-xs font-normal text-muted-foreground">
-            {subtitle}
-          </span>
-        </span>
+      {/* Marca: logo sobre un panel oscuro */}
+      <Link href={homeHref} onClick={onNavigate} className="mb-4 block">
+        <div className="flex items-center justify-center rounded-xl bg-gradient-to-br from-[#1c1030] to-neutral-950 px-4 py-3.5">
+          <Logo className="w-28 object-contain" />
+        </div>
+        <p className="mt-1.5 text-center text-xs text-muted-foreground">
+          {subtitle}
+        </p>
       </Link>
 
       {/* Navegación */}

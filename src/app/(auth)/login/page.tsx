@@ -1,16 +1,8 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { GraduationCap } from "lucide-react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { LoginForm } from "@/components/auth/login-form";
+import { Logo } from "@/components/shared/logo";
 import { getCurrentProfile, roleHome } from "@/lib/auth";
-import { APP_NAME } from "@/lib/constants";
 
 export const metadata: Metadata = { title: "Iniciar sesión" };
 
@@ -22,19 +14,19 @@ export default async function LoginPage() {
   }
 
   return (
-    <Card className="relative z-10 w-full max-w-sm border-border/60 shadow-2xl">
-      <CardHeader className="space-y-3 text-center">
-        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-primary/15">
-          <GraduationCap className="h-6 w-6 text-primary" />
-        </div>
-        <CardTitle className="text-2xl">{APP_NAME}</CardTitle>
-        <CardDescription>
+    <div className="relative z-10 w-full max-w-sm overflow-hidden rounded-2xl border border-border bg-card shadow-2xl">
+      {/* Cabecera con el logo (fondo oscuro para que resalte) */}
+      <div className="flex flex-col items-center gap-3 bg-gradient-to-b from-[#1c1030] to-neutral-950 px-6 py-8">
+        <Logo className="w-44 object-contain" />
+        <p className="text-sm text-white/60">
           Inicia sesión para acceder a tus cursos
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
+        </p>
+      </div>
+
+      {/* Formulario */}
+      <div className="p-6">
         <LoginForm />
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
