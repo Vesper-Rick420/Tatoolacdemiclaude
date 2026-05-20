@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Lock, BookOpen } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { prisma } from "@/lib/prisma";
@@ -83,9 +84,10 @@ export default async function StudentCursosPage() {
                     total > 0 ? Math.round((done / total) * 100) : 0;
 
                   return (
-                    <div
+                    <Link
                       key={course.id}
-                      className="flex flex-col rounded-xl border border-border bg-card p-5"
+                      href={`/dashboard/cursos/${course.id}`}
+                      className="flex flex-col rounded-xl border border-border bg-card p-5 transition-colors hover:border-primary/50"
                     >
                       <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/15">
                         <BookOpen className="h-5 w-5 text-primary" />
@@ -110,7 +112,7 @@ export default async function StudentCursosPage() {
                           />
                         </div>
                       </div>
-                    </div>
+                    </Link>
                   );
                 })}
               </div>
