@@ -2,7 +2,8 @@
 
 /**
  * Página de bienvenida (landing) de Tatool Academy.
- * Secciones: hero con logo · misión y visión · profesores · footer con redes.
+ * El contenido (misión, visión, profesores) se recibe por props:
+ * proviene de la base de datos y es editable desde el panel de admin.
  */
 
 import { useState } from "react";
@@ -10,6 +11,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { ArrowRight, Eye, GraduationCap, Target } from "lucide-react";
 import { FaInstagram, FaFacebookF, FaYoutube } from "react-icons/fa6";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
   APP_NAME,
@@ -18,39 +20,16 @@ import {
   ROUTES,
 } from "@/lib/constants";
 
-// ── Contenido editable ────────────────────────────────────
-// 👉 Personaliza estos textos y datos con la información real.
+type Teacher = {
+  id: string;
+  name: string;
+  specialty: string;
+  photoUrl: string | null;
+  instagramUrl: string | null;
+  facebookUrl: string | null;
+};
 
-const MISION =
-  "Formar tatuadores profesionales con técnica sólida, ética y bioseguridad, ofreciendo una educación de calidad, práctica y 100 % en línea, accesible desde cualquier lugar.";
-
-const VISION =
-  "Ser la academia de tatuaje online de referencia en Latinoamérica, reconocida por la excelencia de sus egresados y por innovar constantemente en la forma de enseñar el arte del tatuaje.";
-
-const TEACHERS = [
-  {
-    name: "Carlos Méndez",
-    specialty: "Realismo y retrato",
-    initials: "CM",
-    instagram: "#",
-    facebook: "#",
-  },
-  {
-    name: "Lucía Fernández",
-    specialty: "Línea fina y minimalismo",
-    initials: "LF",
-    instagram: "#",
-    facebook: "#",
-  },
-  {
-    name: "Diego Torres",
-    specialty: "Black & grey y sombreado",
-    initials: "DT",
-    instagram: "#",
-    facebook: "#",
-  },
-];
-
+// Redes sociales de la academia (footer).
 const SOCIALS = [
   { label: "Instagram", href: "#", icon: FaInstagram },
   { label: "Facebook", href: "#", icon: FaFacebookF },
@@ -65,14 +44,21 @@ const reveal = {
   transition: { duration: 0.5, ease: "easeOut" as const },
 };
 
-export function LandingHero() {
+export function LandingHero({
+  mision,
+  vision,
+  teachers,
+}: {
+  mision: string;
+  vision: string;
+  teachers: Teacher[];
+}) {
   const [logoError, setLogoError] = useState(false);
 
   return (
     <main>
       {/* ═══ HERO ═══ */}
       <section className="relative flex min-h-[92vh] flex-col items-center justify-center overflow-hidden bg-gradient-to-b from-[#1c1030] via-neutral-950 to-neutral-950 px-6 py-20 text-center">
-        {/* Halos morados */}
         <div
           aria-hidden
           className="pointer-events-none absolute -top-40 left-1/2 h-[520px] w-[520px] -translate-x-1/2 rounded-full bg-primary/30 blur-[140px]"
@@ -82,7 +68,6 @@ export function LandingHero() {
           className="pointer-events-none absolute right-0 bottom-0 h-[320px] w-[320px] rounded-full bg-fuchsia-500/20 blur-[120px]"
         />
 
-        {/* Acceso rápido */}
         <Link
           href={ROUTES.login}
           className="absolute top-6 right-6 text-sm font-medium text-white/70 transition-colors hover:text-white"
@@ -90,7 +75,6 @@ export function LandingHero() {
           Iniciar sesión
         </Link>
 
-        {/* Logo */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -101,9 +85,7 @@ export function LandingHero() {
               <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/20">
                 <GraduationCap className="h-7 w-7 text-primary" />
               </span>
-              <span className="text-3xl font-bold text-white">
-                {APP_NAME}
-              </span>
+              <span className="text-3xl font-bold text-white">{APP_NAME}</span>
             </div>
           ) : (
             // eslint-disable-next-line @next/next/no-img-element
@@ -155,7 +137,6 @@ export function LandingHero() {
           </Button>
         </motion.div>
 
-        {/* Niveles */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -195,7 +176,7 @@ export function LandingHero() {
                 <Target className="h-6 w-6 text-primary" />
               </span>
               <h3 className="mt-4 text-xl font-semibold">Misión</h3>
-              <p className="mt-2 text-muted-foreground">{MISION}</p>
+              <p className="mt-2 text-muted-foreground">{mision}</p>
             </motion.div>
 
             <motion.div
@@ -207,7 +188,7 @@ export function LandingHero() {
                 <Eye className="h-6 w-6 text-primary" />
               </span>
               <h3 className="mt-4 text-xl font-semibold">Visión</h3>
-              <p className="mt-2 text-muted-foreground">{VISION}</p>
+              <p className="mt-2 text-muted-foreground">{vision}</p>
             </motion.div>
           </div>
         </div>
@@ -226,40 +207,57 @@ export function LandingHero() {
             </p>
           </motion.div>
 
-          <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {TEACHERS.map((teacher, index) => (
-              <motion.div
-                key={teacher.name}
-                {...reveal}
-                transition={{ ...reveal.transition, delay: index * 0.1 }}
-                className="flex flex-col items-center rounded-2xl border border-border bg-card p-6 text-center"
-              >
-                <span className="flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-primary to-fuchsia-400 text-xl font-bold text-white">
-                  {teacher.initials}
-                </span>
-                <h3 className="mt-4 font-semibold">{teacher.name}</h3>
-                <p className="text-sm text-muted-foreground">
-                  {teacher.specialty}
-                </p>
-                <div className="mt-4 flex gap-2">
-                  <a
-                    href={teacher.instagram}
-                    aria-label={`Instagram de ${teacher.name}`}
-                    className="flex h-9 w-9 items-center justify-center rounded-lg border border-border text-muted-foreground transition-colors hover:border-primary/50 hover:text-primary"
-                  >
-                    <FaInstagram className="h-4 w-4" />
-                  </a>
-                  <a
-                    href={teacher.facebook}
-                    aria-label={`Facebook de ${teacher.name}`}
-                    className="flex h-9 w-9 items-center justify-center rounded-lg border border-border text-muted-foreground transition-colors hover:border-primary/50 hover:text-primary"
-                  >
-                    <FaFacebookF className="h-4 w-4" />
-                  </a>
-                </div>
-              </motion.div>
-            ))}
-          </div>
+          {teachers.length > 0 && (
+            <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {teachers.map((teacher, index) => (
+                <motion.div
+                  key={teacher.id}
+                  {...reveal}
+                  transition={{ ...reveal.transition, delay: index * 0.1 }}
+                  className="flex flex-col items-center rounded-2xl border border-border bg-card p-6 text-center"
+                >
+                  <Avatar className="h-20 w-20">
+                    {teacher.photoUrl && (
+                      <AvatarImage src={teacher.photoUrl} alt={teacher.name} />
+                    )}
+                    <AvatarFallback className="bg-gradient-to-br from-primary to-fuchsia-400 text-xl font-bold text-white">
+                      {getInitials(teacher.name)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <h3 className="mt-4 font-semibold">{teacher.name}</h3>
+                  <p className="text-sm text-muted-foreground">
+                    {teacher.specialty}
+                  </p>
+                  {(teacher.instagramUrl || teacher.facebookUrl) && (
+                    <div className="mt-4 flex gap-2">
+                      {teacher.instagramUrl && (
+                        <a
+                          href={teacher.instagramUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          aria-label={`Instagram de ${teacher.name}`}
+                          className="flex h-9 w-9 items-center justify-center rounded-lg border border-border text-muted-foreground transition-colors hover:border-primary/50 hover:text-primary"
+                        >
+                          <FaInstagram className="h-4 w-4" />
+                        </a>
+                      )}
+                      {teacher.facebookUrl && (
+                        <a
+                          href={teacher.facebookUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          aria-label={`Facebook de ${teacher.name}`}
+                          className="flex h-9 w-9 items-center justify-center rounded-lg border border-border text-muted-foreground transition-colors hover:border-primary/50 hover:text-primary"
+                        >
+                          <FaFacebookF className="h-4 w-4" />
+                        </a>
+                      )}
+                    </div>
+                  )}
+                </motion.div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
@@ -300,5 +298,17 @@ export function LandingHero() {
         </div>
       </footer>
     </main>
+  );
+}
+
+function getInitials(name: string): string {
+  return (
+    name
+      .trim()
+      .split(/\s+/)
+      .map((p) => p[0] ?? "")
+      .slice(0, 2)
+      .join("")
+      .toUpperCase() || "?"
   );
 }

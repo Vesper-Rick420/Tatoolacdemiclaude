@@ -267,3 +267,32 @@ model ActivityLog {
   @@index([createdAt])
   @@map("activity_logs")
 }
+
+// ╔════════════════════════════════════════════════════════════╗
+// ║  CONTENIDO DEL SITIO (editable desde el panel de admin)      ║
+// ╚════════════════════════════════════════════════════════════╝
+
+/// Ajustes de la página de inicio. Fila única (id = "default").
+model SiteSettings {
+  id        String   @id @default("default")
+  mision    String
+  vision    String
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@map("site_settings")
+}
+
+/// Profesor mostrado en la página de inicio.
+model Teacher {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name         String
+  specialty    String
+  photoUrl     String?  @map("photo_url")
+  instagramUrl String?  @map("instagram_url")
+  facebookUrl  String?  @map("facebook_url")
+  order        Int      @default(0)
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@map("teachers")
+}

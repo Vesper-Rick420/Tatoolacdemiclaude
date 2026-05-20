@@ -8,6 +8,7 @@ import {
   Users,
   BookOpen,
   BarChart3,
+  Globe,
   User,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -25,6 +26,7 @@ const CONFIG: Record<
       { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
       { label: "Usuarios", href: "/admin/usuarios", icon: Users },
       { label: "Cursos", href: "/admin/cursos", icon: BookOpen },
+      { label: "Sitio web", href: "/admin/contenido", icon: Globe },
       { label: "Estadísticas", href: "/admin/estadisticas", icon: BarChart3 },
     ],
   },
