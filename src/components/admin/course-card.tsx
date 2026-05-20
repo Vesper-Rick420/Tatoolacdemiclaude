@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import Link from "next/link";
 import { toast } from "sonner";
 import {
   BookOpen,
@@ -8,7 +9,6 @@ import {
   Eye,
   EyeOff,
   Layers,
-  Loader2,
   Pencil,
   Trash2,
 } from "lucide-react";
@@ -21,14 +21,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { ConfirmDialog } from "@/components/admin/confirm-dialog";
 import { CourseFormDialog } from "@/components/admin/course-form-dialog";
 import { toggleCoursePublished, deleteCourse } from "@/lib/actions/courses";
 import type { CourseRow, LevelOption } from "@/components/admin/courses-manager";
@@ -120,9 +113,17 @@ export function CourseCard({
         {course.description || "Sin descripción."}
       </p>
 
-      <div className="mt-4 flex items-center gap-1.5 border-t border-border pt-3 text-xs text-muted-foreground">
-        <Layers className="h-3.5 w-3.5" />
-        {course.moduleCount} módulo(s)
+      <div className="mt-4 flex items-center justify-between border-t border-border pt-3">
+        <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+          <Layers className="h-3.5 w-3.5" />
+          {course.moduleCount} módulo(s)
+        </span>
+        <Link
+          href={`/admin/cursos/${course.id}`}
+          className="text-xs font-medium text-primary hover:underline"
+        >
+          Gestionar contenido →
+        </Link>
       </div>
 
       {editOpen && (
@@ -134,30 +135,14 @@ export function CourseCard({
         />
       )}
 
-      <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>¿Eliminar curso?</DialogTitle>
-            <DialogDescription>
-              Se eliminará <strong>{course.title}</strong> con todos sus
-              módulos y lecciones. Esta acción no se puede deshacer.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDeleteOpen(false)}>
-              Cancelar
-            </Button>
-            <Button
-              variant="destructive"
-              disabled={isPending}
-              onClick={handleDelete}
-            >
-              {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
-              Eliminar
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <ConfirmDialog
+        open={deleteOpen}
+        onOpenChange={setDeleteOpen}
+        pending={isPending}
+        title="¿Eliminar curso?"
+        description={`Se eliminará "${course.title}" con todos sus módulos y lecciones. Esta acción no se puede deshacer.`}
+        onConfirm={handleDelete}
+      />
     </div>
   );
 }
