@@ -3,12 +3,13 @@
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
-import { ArrowLeft, Layers, Pencil, Plus, Trash2 } from "lucide-react";
+import { ArrowLeft, Layers, Pencil, Plus, Trash2, Video } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/admin/confirm-dialog";
 import { ModuleFormDialog } from "@/components/admin/module-form-dialog";
 import { LessonFormDialog } from "@/components/admin/lesson-form-dialog";
+import { LessonVideoDialog } from "@/components/admin/lesson-video-dialog";
 import { deleteModule, deleteLesson } from "@/lib/actions/content";
 
 export type LessonItem = {
@@ -206,6 +207,7 @@ function LessonRow({
   lesson: LessonItem;
   index: number;
 }) {
+  const [videoOpen, setVideoOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
@@ -246,6 +248,16 @@ function LessonRow({
         <Button
           variant="ghost"
           size="icon-sm"
+          aria-label="Video de la lección"
+          onClick={() => setVideoOpen(true)}
+        >
+          <Video
+            className={lesson.hasVideo ? "h-4 w-4 text-primary" : "h-4 w-4"}
+          />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon-sm"
           aria-label="Editar lección"
           onClick={() => setEditOpen(true)}
         >
@@ -261,6 +273,14 @@ function LessonRow({
         </Button>
       </div>
 
+      {videoOpen && (
+        <LessonVideoDialog
+          open
+          onOpenChange={setVideoOpen}
+          lessonId={lesson.id}
+          hasVideo={lesson.hasVideo}
+        />
+      )}
       {editOpen && (
         <LessonFormDialog open onOpenChange={setEditOpen} lesson={lesson} />
       )}
