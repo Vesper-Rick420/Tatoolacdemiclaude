@@ -55,3 +55,21 @@ export async function requireRole(role: UserRole) {
   }
   return profile;
 }
+
+/**
+ * Devuelve el perfil del admin actual o LANZA un error.
+ * Pensada para el inicio de las server actions de administración:
+ * a diferencia de requireRole, no redirige (lanza), porque las
+ * acciones no deben "navegar", deben fallar de forma controlada.
+ */
+export async function getAdminProfile() {
+  const profile = await getCurrentProfile();
+  if (
+    !profile ||
+    profile.role !== USER_ROLES.ADMIN ||
+    profile.status === "suspendido"
+  ) {
+    throw new Error("No autorizado.");
+  }
+  return profile;
+}
