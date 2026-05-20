@@ -22,7 +22,10 @@ export default async function CourseDetailPage({
       modules: {
         orderBy: { order: "asc" },
         include: {
-          lessons: { orderBy: { order: "asc" } },
+          lessons: {
+            orderBy: { order: "asc" },
+            include: { resources: { orderBy: { createdAt: "asc" } } },
+          },
         },
       },
     },
@@ -44,6 +47,11 @@ export default async function CourseDetailPage({
         description: lesson.description,
         isFree: lesson.isFree,
         hasVideo: Boolean(lesson.videoPath),
+        resources: lesson.resources.map((resource) => ({
+          id: resource.id,
+          name: resource.name,
+          type: resource.type,
+        })),
       })),
     })),
   };

@@ -3,14 +3,25 @@
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
-import { ArrowLeft, Layers, Pencil, Plus, Trash2, Video } from "lucide-react";
+import {
+  ArrowLeft,
+  Layers,
+  Paperclip,
+  Pencil,
+  Plus,
+  Trash2,
+  Video,
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/admin/confirm-dialog";
 import { ModuleFormDialog } from "@/components/admin/module-form-dialog";
 import { LessonFormDialog } from "@/components/admin/lesson-form-dialog";
 import { LessonVideoDialog } from "@/components/admin/lesson-video-dialog";
+import { LessonResourcesDialog } from "@/components/admin/lesson-resources-dialog";
 import { deleteModule, deleteLesson } from "@/lib/actions/content";
+
+export type ResourceItem = { id: string; name: string; type: string };
 
 export type LessonItem = {
   id: string;
@@ -18,6 +29,7 @@ export type LessonItem = {
   description: string | null;
   isFree: boolean;
   hasVideo: boolean;
+  resources: ResourceItem[];
 };
 
 export type ModuleItem = {
@@ -200,14 +212,9 @@ function ModuleSection({
   );
 }
 
-function LessonRow({
-  lesson,
-  index,
-}: {
-  lesson: LessonItem;
-  index: number;
-}) {
+function LessonRow({ lesson, index }: { lesson: LessonItem; index: number }) {
   const [videoOpen, setVideoOpen] = useState(false);
+  const [resourcesOpen, setResourcesOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
@@ -241,6 +248,11 @@ function LessonRow({
             >
               {lesson.hasVideo ? "● Con video" : "○ Sin video"}
             </span>
+            {lesson.resources.length > 0 && (
+              <span className="text-muted-foreground">
+                · {lesson.resources.length} recurso(s)
+              </span>
+            )}
           </div>
         </div>
       </div>
@@ -254,6 +266,14 @@ function LessonRow({
           <Video
             className={lesson.hasVideo ? "h-4 w-4 text-primary" : "h-4 w-4"}
           />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          aria-label="Recursos de la lección"
+          onClick={() => setResourcesOpen(true)}
+        >
+          <Paperclip className="h-4 w-4" />
         </Button>
         <Button
           variant="ghost"
@@ -279,6 +299,14 @@ function LessonRow({
           onOpenChange={setVideoOpen}
           lessonId={lesson.id}
           hasVideo={lesson.hasVideo}
+        />
+      )}
+      {resourcesOpen && (
+        <LessonResourcesDialog
+          open
+          onOpenChange={setResourcesOpen}
+          lessonId={lesson.id}
+          resources={lesson.resources}
         />
       )}
       {editOpen && (
