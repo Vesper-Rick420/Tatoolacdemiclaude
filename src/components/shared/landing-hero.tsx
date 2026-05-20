@@ -80,6 +80,7 @@ export function LandingHero() {
       >
         <Button
           render={<Link href={ROUTES.login} />}
+          nativeButton={false}
           size="lg"
           className="group h-12 px-8 text-base"
         >
