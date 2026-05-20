@@ -1,17 +1,28 @@
 import type { ReactNode } from "react";
 import { requireRole } from "@/lib/auth";
 import { USER_ROLES } from "@/lib/constants";
+import { AppShell } from "@/components/layout/app-shell";
 
 /**
  * Layout del panel del estudiante.
- * Guarda de seguridad: requireRole redirige si el usuario no es
- * estudiante (o no tiene sesión). El shell con sidebar llega en la Fase 5.
+ * requireRole redirige si el usuario no es estudiante (o no tiene sesión).
  */
 export default async function StudentLayout({
   children,
 }: {
   children: ReactNode;
 }) {
-  await requireRole(USER_ROLES.STUDENT);
-  return <>{children}</>;
+  const profile = await requireRole(USER_ROLES.STUDENT);
+
+  return (
+    <AppShell
+      variant="student"
+      user={{
+        name: profile.fullName || profile.username,
+        role: "Estudiante",
+      }}
+    >
+      {children}
+    </AppShell>
+  );
 }

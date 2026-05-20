@@ -2,40 +2,35 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import {
-  LayoutDashboard,
-  Users,
-  BookOpen,
-  BarChart3,
-  GraduationCap,
-} from "lucide-react";
+import { GraduationCap, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { LogoutButton } from "@/components/auth/logout-button";
 import { APP_NAME } from "@/lib/constants";
 
-/** Enlaces de navegación del panel de administración. */
-export const ADMIN_NAV = [
-  { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
-  { label: "Usuarios", href: "/admin/usuarios", icon: Users },
-  { label: "Cursos", href: "/admin/cursos", icon: BookOpen },
-  { label: "Estadísticas", href: "/admin/estadisticas", icon: BarChart3 },
-] as const;
+export type NavItem = { label: string; href: string; icon: LucideIcon };
 
-type AdminSidebarProps = {
+/** Contenido de la barra lateral. Lo reutilizan el panel admin y el del estudiante. */
+export function AppSidebar({
+  items,
+  subtitle,
+  user,
+  onNavigate,
+}: {
+  items: readonly NavItem[];
+  subtitle: string;
   user: { name: string; role: string };
-  /** Se llama al pulsar un enlace (sirve para cerrar el drawer móvil). */
+  /** Se llama al pulsar un enlace (para cerrar el drawer en móvil). */
   onNavigate?: () => void;
-};
-
-export function AdminSidebar({ user, onNavigate }: AdminSidebarProps) {
+}) {
   const pathname = usePathname();
+  const homeHref = items[0]?.href ?? "/";
 
   return (
     <div className="flex h-full flex-col gap-2 bg-sidebar p-4">
       {/* Marca */}
       <Link
-        href="/admin"
+        href={homeHref}
         onClick={onNavigate}
         className="mb-4 flex items-center gap-2.5 px-2"
       >
@@ -45,17 +40,18 @@ export function AdminSidebar({ user, onNavigate }: AdminSidebarProps) {
         <span className="text-sm font-semibold leading-tight">
           {APP_NAME}
           <span className="block text-xs font-normal text-muted-foreground">
-            Administración
+            {subtitle}
           </span>
         </span>
       </Link>
 
       {/* Navegación */}
       <nav className="flex flex-1 flex-col gap-1">
-        {ADMIN_NAV.map((item) => {
+        {items.map((item) => {
+          // El primer enlace es el "inicio": coincidencia exacta.
           const active =
-            item.href === "/admin"
-              ? pathname === "/admin"
+            item.href === homeHref
+              ? pathname === item.href
               : pathname.startsWith(item.href);
           return (
             <Link
@@ -86,7 +82,9 @@ export function AdminSidebar({ user, onNavigate }: AdminSidebarProps) {
           </Avatar>
           <div className="min-w-0">
             <p className="truncate text-sm font-medium">{user.name}</p>
-            <p className="truncate text-xs text-muted-foreground">{user.role}</p>
+            <p className="truncate text-xs text-muted-foreground">
+              {user.role}
+            </p>
           </div>
         </div>
         <LogoutButton />
@@ -95,13 +93,12 @@ export function AdminSidebar({ user, onNavigate }: AdminSidebarProps) {
   );
 }
 
-/** Iniciales a partir del nombre (máx. 2 letras). */
 function getInitials(name: string): string {
   return (
     name
       .trim()
       .split(/\s+/)
-      .map((part) => part[0] ?? "")
+      .map((p) => p[0] ?? "")
       .slice(0, 2)
       .join("")
       .toUpperCase() || "?"

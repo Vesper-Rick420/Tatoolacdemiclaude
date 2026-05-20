@@ -2,31 +2,69 @@
 
 import { useState, type ReactNode } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Menu } from "lucide-react";
+import {
+  Menu,
+  LayoutDashboard,
+  Users,
+  BookOpen,
+  BarChart3,
+  User,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { AdminSidebar } from "@/components/layout/admin-sidebar";
+import { AppSidebar, type NavItem } from "@/components/layout/app-sidebar";
 
-type ShellUser = { name: string; role: string };
+/** Configuración de navegación por tipo de panel. */
+const CONFIG: Record<
+  "admin" | "student",
+  { subtitle: string; mobileTitle: string; items: readonly NavItem[] }
+> = {
+  admin: {
+    subtitle: "Administración",
+    mobileTitle: "Tatool · Admin",
+    items: [
+      { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
+      { label: "Usuarios", href: "/admin/usuarios", icon: Users },
+      { label: "Cursos", href: "/admin/cursos", icon: BookOpen },
+      { label: "Estadísticas", href: "/admin/estadisticas", icon: BarChart3 },
+    ],
+  },
+  student: {
+    subtitle: "Estudiante",
+    mobileTitle: "Tatool Academy",
+    items: [
+      { label: "Inicio", href: "/dashboard", icon: LayoutDashboard },
+      { label: "Mis cursos", href: "/dashboard/cursos", icon: BookOpen },
+      { label: "Perfil", href: "/dashboard/perfil", icon: User },
+    ],
+  },
+};
 
 /**
- * Estructura visual del panel de administración.
- *  - Escritorio (lg+): sidebar fija a la izquierda.
- *  - Móvil: sidebar oculta; se abre como drawer con el botón ☰.
+ * Estructura visual de los paneles (admin y estudiante).
+ *  - Escritorio (lg+): barra lateral fija.
+ *  - Móvil: barra oculta; se abre como drawer con el botón ☰.
  */
-export function AdminShell({
+export function AppShell({
+  variant,
   user,
   children,
 }: {
-  user: ShellUser;
+  variant: "admin" | "student";
+  user: { name: string; role: string };
   children: ReactNode;
 }) {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const config = CONFIG[variant];
 
   return (
     <div className="min-h-screen">
-      {/* Sidebar fija — escritorio */}
+      {/* Barra lateral fija — escritorio */}
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 border-r border-sidebar-border lg:block">
-        <AdminSidebar user={user} />
+        <AppSidebar
+          items={config.items}
+          subtitle={config.subtitle}
+          user={user}
+        />
       </aside>
 
       {/* Drawer — móvil */}
@@ -47,7 +85,9 @@ export function AdminShell({
               transition={{ type: "tween", duration: 0.25 }}
               className="fixed inset-y-0 left-0 z-50 w-64 border-r border-sidebar-border bg-sidebar lg:hidden"
             >
-              <AdminSidebar
+              <AppSidebar
+                items={config.items}
+                subtitle={config.subtitle}
                 user={user}
                 onNavigate={() => setMobileOpen(false)}
               />
@@ -66,7 +106,7 @@ export function AdminShell({
         >
           <Menu className="h-5 w-5" />
         </Button>
-        <span className="text-sm font-semibold">Tatool · Admin</span>
+        <span className="text-sm font-semibold">{config.mobileTitle}</span>
       </header>
 
       {/* Contenido */}

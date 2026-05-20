@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { requireRole } from "@/lib/auth";
 import { USER_ROLES } from "@/lib/constants";
-import { AdminShell } from "@/components/layout/admin-shell";
+import { AppShell } from "@/components/layout/app-shell";
 
 /**
  * Layout del panel de administración.
@@ -15,13 +15,14 @@ export default async function AdminLayout({
   const profile = await requireRole(USER_ROLES.ADMIN);
 
   return (
-    <AdminShell
+    <AppShell
+      variant="admin"
       user={{
         name: profile.fullName || profile.username,
         role: "Administrador",
       }}
     >
       {children}
-    </AdminShell>
+    </AppShell>
   );
 }
