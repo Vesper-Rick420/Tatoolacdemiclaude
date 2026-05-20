@@ -8,7 +8,9 @@ export default defineConfig({
   migrations: {
     path: "prisma/migrations",
   },
+  // La CLI de Prisma (migrate, db pull...) usa la conexión DIRECTA
+  // (puerto 5432). El pooler en modo transacción no soporta migraciones.
   datasource: {
-    url: process.env["DATABASE_URL"],
+    url: process.env.DIRECT_URL,
   },
 });

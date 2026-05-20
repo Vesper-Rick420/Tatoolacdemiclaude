@@ -1,8 +1,9 @@
 // ───────────────────────────────────────────────────────────
-//  Tatool Academy — Esquema de Prisma
-//  Los modelos (users, profiles, courses, modules, lessons,
-//  downloads, progress, activity_logs, enrollments, levels) se
-//  definen en la FASE 2. Aquí queda solo la configuración base.
+//  Tatool Academy — Esquema de Prisma (FASE 2)
+//  Prisma define las TABLAS del esquema `public`.
+//  Las políticas RLS, los triggers y la relación con `auth.users`
+//  se aplican aparte como SQL (Supabase gestiona el esquema `auth`,
+//  que Prisma no puede modelar desde aquí).
 //  Docs: https://pris.ly/d/prisma-schema
 // ───────────────────────────────────────────────────────────
 
@@ -13,4 +14,256 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+  // En Prisma 7 la URL de conexión NO va en el schema:
+  //  • Migraciones/CLI → prisma.config.ts  (datasource.url)
+  //  • App en runtime  → driver adapter en src/lib/prisma.ts
+}
+
+// ╔════════════════════════════════════════════════════════════╗
+// ║  ENUMS                                                      ║
+// ╚════════════════════════════════════════════════════════════╝
+
+/// Rol del usuario dentro de la plataforma.
+enum Role {
+  admin
+  estudiante
+}
+
+/// Estado de la cuenta de un perfil.
+enum ProfileStatus {
+  activo
+  suspendido
+}
+
+/// Estado de acceso de un estudiante a un nivel.
+/// bloqueado  → aún no desbloqueado (o bloqueado por el admin)
+/// activo     → puede acceder a los cursos del nivel
+/// completado → terminó todas las lecciones del nivel
+enum EnrollmentStatus {
+  bloqueado
+  activo
+  completado
+}
+
+/// Tipo de recurso descargable de una lección.
+enum ResourceType {
+  pdf
+  imagen
+  archivo
+  enlace
+}
+
+/// Acciones que se registran en el log de actividad.
+enum ActivityAction {
+  login
+  logout
+  course_view
+  lesson_view
+  lesson_complete
+  download
+  level_unlocked
+}
+
+// ╔════════════════════════════════════════════════════════════╗
+// ║  USUARIOS                                                   ║
+// ╚════════════════════════════════════════════════════════════╝
+
+/// Perfil del usuario. Relación 1:1 con `auth.users` de Supabase:
+/// `id` es el MISMO uuid que `auth.users.id` (lo inserta un trigger
+/// SQL al registrarse el usuario; por eso no lleva @default).
+model Profile {
+  id        String        @id @db.Uuid
+  username  String        @unique
+  fullName  String        @map("full_name")
+  email     String        @unique
+  avatarUrl String?       @map("avatar_url")
+  role      Role          @default(estudiante)
+  status    ProfileStatus @default(activo)
+  createdAt DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  enrollments  Enrollment[]
+  progress     Progress[]
+  downloads    Download[]
+  activityLogs ActivityLog[]
+
+  @@map("profiles")
+}
+
+// ╔════════════════════════════════════════════════════════════╗
+// ║  CONTENIDO: niveles → cursos → módulos → lecciones          ║
+// ╚════════════════════════════════════════════════════════════╝
+
+/// Nivel de progresión. Se siembran 4 filas fijas:
+/// basico (1), intermedio (2), avanzado (3), profesional (4).
+model Level {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  slug        String   @unique
+  name        String
+  description String?
+  order       Int      @unique
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  courses     Course[]
+  enrollments Enrollment[]
+
+  @@map("levels")
+}
+
+/// Curso. Pertenece a un nivel.
+model Course {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  levelId      String   @map("level_id") @db.Uuid
+  title        String
+  slug         String   @unique
+  description  String?
+  thumbnailUrl String?  @map("thumbnail_url")
+  order        Int      @default(0)
+  isPublished  Boolean  @default(false) @map("is_published")
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  level   Level    @relation(fields: [levelId], references: [id], onDelete: Restrict)
+  modules Module[]
+
+  @@index([levelId])
+  @@map("courses")
+}
+
+/// Módulo: agrupa lecciones dentro de un curso.
+model Module {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  courseId  String   @map("course_id") @db.Uuid
+  title     String
+  order     Int      @default(0)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  course  Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  lessons Lesson[]
+
+  @@index([courseId])
+  @@map("modules")
+}
+
+/// Lección: una clase en video dentro de un módulo.
+model Lesson {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  moduleId        String   @map("module_id") @db.Uuid
+  title           String
+  description     String?
+  videoPath       String?  @map("video_path")
+  durationSeconds Int?     @map("duration_seconds")
+  order           Int      @default(0)
+  isFree          Boolean  @default(false) @map("is_free")
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  module    Module     @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  resources Resource[]
+  progress  Progress[]
+  downloads Download[]
+
+  @@index([moduleId])
+  @@map("lessons")
+}
+
+/// Recurso descargable asociado a una lección (PDF, imagen, archivo...).
+model Resource {
+  id        String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  lessonId  String       @map("lesson_id") @db.Uuid
+  name      String
+  type      ResourceType @default(pdf)
+  filePath  String       @map("file_path")
+  sizeBytes Int?         @map("size_bytes")
+  createdAt DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  lesson    Lesson     @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  downloads Download[]
+
+  @@index([lessonId])
+  @@map("resources")
+}
+
+// ╔════════════════════════════════════════════════════════════╗
+// ║  PROGRESO Y ACCESO                                          ║
+// ╚════════════════════════════════════════════════════════════╝
+
+/// Matrícula: acceso de un estudiante a un NIVEL completo.
+/// Es la tabla que implementa el bloqueo/desbloqueo por niveles.
+model Enrollment {
+  id          String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  profileId   String           @map("profile_id") @db.Uuid
+  levelId     String           @map("level_id") @db.Uuid
+  status      EnrollmentStatus @default(bloqueado)
+  unlockedAt  DateTime?        @map("unlocked_at") @db.Timestamptz(6)
+  completedAt DateTime?        @map("completed_at") @db.Timestamptz(6)
+  createdAt   DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  profile Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  level   Level   @relation(fields: [levelId], references: [id], onDelete: Cascade)
+
+  @@unique([profileId, levelId])
+  @@index([profileId])
+  @@map("enrollments")
+}
+
+/// Progreso de un estudiante en una lección concreta.
+/// `lastPositionSeconds` guarda el segundo exacto del video.
+model Progress {
+  id                  String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  profileId           String    @map("profile_id") @db.Uuid
+  lessonId            String    @map("lesson_id") @db.Uuid
+  completed           Boolean   @default(false)
+  lastPositionSeconds Int       @default(0) @map("last_position_seconds")
+  completedAt         DateTime? @map("completed_at") @db.Timestamptz(6)
+  updatedAt           DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  profile Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  lesson  Lesson  @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@unique([profileId, lessonId])
+  @@index([profileId])
+  @@map("progress")
+}
+
+// ╔════════════════════════════════════════════════════════════╗
+// ║  AUDITORÍA                                                  ║
+// ╚════════════════════════════════════════════════════════════╝
+
+/// Registro de cada descarga (auditoría de la marca de agua).
+model Download {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  profileId  String   @map("profile_id") @db.Uuid
+  lessonId   String?  @map("lesson_id") @db.Uuid
+  resourceId String?  @map("resource_id") @db.Uuid
+  fileName   String   @map("file_name")
+  fileType   String   @map("file_type")
+  ipAddress  String?  @map("ip_address")
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  profile  Profile   @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  lesson   Lesson?   @relation(fields: [lessonId], references: [id], onDelete: SetNull)
+  resource Resource? @relation(fields: [resourceId], references: [id], onDelete: SetNull)
+
+  @@index([profileId])
+  @@index([createdAt])
+  @@map("downloads")
+}
+
+/// Log de actividad: logins, vistas, descargas... base de las estadísticas.
+model ActivityLog {
+  id        String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  profileId String         @map("profile_id") @db.Uuid
+  action    ActivityAction
+  metadata  Json?
+  ipAddress String?        @map("ip_address")
+  userAgent String?        @map("user_agent")
+  createdAt DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  profile Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@index([profileId])
+  @@index([action])
+  @@index([createdAt])
+  @@map("activity_logs")
 }
