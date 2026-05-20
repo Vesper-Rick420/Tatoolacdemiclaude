@@ -1,36 +1,73 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🖤 Tatool Academy
 
-## Getting Started
+Plataforma web premium de **cursos de tatuaje online**, estilo Netflix/Udemy.
+Los administradores gestionan usuarios y cursos; los estudiantes ven clases por
+niveles y descargan recursos con marca de agua personalizada.
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## 🧱 Stack tecnológico
+
+| Capa            | Tecnología                                            |
+| --------------- | ----------------------------------------------------- |
+| Framework       | Next.js 15 (App Router) + TypeScript                  |
+| Estilos / UI    | TailwindCSS v4 + shadcn/ui + Framer Motion            |
+| Backend / DB    | Supabase (PostgreSQL + Auth + Storage)                |
+| ORM             | Prisma 7                                              |
+| Estado servidor | TanStack Query                                        |
+| Formularios     | React Hook Form + Zod                                 |
+| Hosting         | Vercel                                                |
+
+## 🎨 Diseño
+
+Minimalista y premium. Paleta **blanco / negro / morado pastel**, dark mode,
+sidebar moderna, cards animadas y diseño totalmente responsive.
+
+## 📁 Estructura del proyecto
+
+```
+src/
+├── app/
+│   ├── (auth)/login/        → autenticación (sin sidebar)
+│   ├── (student)/dashboard/ → panel del estudiante
+│   ├── (admin)/admin/       → panel del administrador
+│   └── api/                 → API routes
+├── components/
+│   ├── ui/                  → componentes shadcn/ui
+│   ├── layout/              → sidebar, navbar, etc.
+│   ├── student/  admin/  shared/
+├── lib/
+│   ├── supabase/            → clientes de Supabase
+│   └── validations/         → esquemas Zod
+├── hooks/  types/
+prisma/                      → schema.prisma (modelo de datos)
+supabase/migrations/         → SQL de RLS, triggers y políticas
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🚀 Puesta en marcha
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm install          # instalar dependencias
+cp .env.example .env # crear variables de entorno y rellenarlas
+npm run dev          # arrancar en http://localhost:3000
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 📜 Scripts
 
-## Learn More
+| Comando         | Descripción                          |
+| --------------- | ------------------------------------ |
+| `npm run dev`   | Servidor de desarrollo (Turbopack)   |
+| `npm run build` | Build de producción                  |
+| `npm run start` | Servir el build de producción        |
+| `npm run lint`  | Linter (ESLint)                      |
 
-To learn more about Next.js, take a look at the following resources:
+## 🗺️ Roadmap por fases
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- [x] **Fase 1** — Inicialización: proyecto, estructura, dependencias, Git
+- [ ] **Fase 2** — Supabase: base de datos, schema Prisma, RLS
+- [ ] **Fase 3** — Autenticación, middleware y roles
+- [ ] **Fase 4** — Panel de administración
+- [ ] **Fase 5** — Panel del estudiante
+- [ ] **Fase 6** — Sistema de cursos y reproductor de video
+- [ ] **Fase 7** — Descargas con marca de agua (FFmpeg) y logs
+- [ ] **Fase 8** — Hardening de seguridad y despliegue en Vercel

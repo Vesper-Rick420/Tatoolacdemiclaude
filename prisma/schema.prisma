@@ -1,0 +1,16 @@
+// ───────────────────────────────────────────────────────────
+//  Tatool Academy — Esquema de Prisma
+//  Los modelos (users, profiles, courses, modules, lessons,
+//  downloads, progress, activity_logs, enrollments, levels) se
+//  definen en la FASE 2. Aquí queda solo la configuración base.
+//  Docs: https://pris.ly/d/prisma-schema
+// ───────────────────────────────────────────────────────────
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
